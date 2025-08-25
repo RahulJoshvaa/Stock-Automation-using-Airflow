@@ -1,0 +1,106 @@
+version: "3.8"
+
+networks:
+  airflow_network:
+    driver: bridge
+#docker exec -it postgres psql -U rahul -d stockdatabase
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: rahul
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: stockdatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - airflow_network
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   ports:
+  #     - "8080:80"
+  #   networks:
+  #     - airflow_network
+
+  # Airflow metadata DB (separate from your stockdatabase)
+  airflow_postgres:
+    image: postgres:15
+    container_name: airflow_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+    networks:
+      - airflow_network
+
+  # Airflow webserver
+  airflow_webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow_web
+    depends_on:
+      - airflow_postgres
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /opt/airflow/scripts
+      AIRFLOW__WEBSERVER__WEB_SERVER_TIMEOUT: 300
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres:5432/airflow
+      AIRFLOW__WEBSERVER__AUTHENTICATE: "False"   # disable login for now
+      AIRFLOW__WEBSERVER__WORKERS: 1   # <-- add this line
+
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+    ports:
+      - "8081:8080"  # webserver on 8081 to avoid conflict with pgadmin
+    command: >
+      bash -c "airflow db upgrade && airflow webserver"
+    networks:
+      - airflow_network
+
+  # Airflow scheduler
+  airflow_scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow_scheduler
+    depends_on:
+      - airflow_postgres
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /opt/airflow/scripts
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres:5432/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+    command: >
+      bash -c "airflow scheduler"
+    networks:
+      - airflow_network
+
+volumes:
+  postgres_data:
+  airflow_postgres_data:
