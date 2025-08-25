@@ -1,9 +1,8 @@
-version: "3.8"
+version: "3.8" #not needed explictly still i gave for my convinience
 
-networks:
+networks: # network for containers to interact
   airflow_network:
     driver: bridge
-#docker exec -it postgres psql -U rahul -d stockdatabase
 
 services:
   db:
@@ -34,7 +33,7 @@ services:
   #   networks:
   #     - airflow_network
 
-  # Airflow metadata DB (separate from your stockdatabase)
+  # Airflow metadata DB (separate from the stockdatabase)
   airflow_postgres:
     image: postgres:15
     container_name: airflow_postgres
@@ -50,11 +49,11 @@ services:
     networks:
       - airflow_network
 
-  # Airflow webserver
+  # Airflow webserver(these are build as we mentioned in the dependencies in Dockerfile)
   airflow_webserver:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile 
     container_name: airflow_web
     depends_on:
       - airflow_postgres
@@ -62,18 +61,18 @@ services:
       - .env
     environment:
       PYTHONPATH: /opt/airflow/scripts
-      AIRFLOW__WEBSERVER__WEB_SERVER_TIMEOUT: 300
+      AIRFLOW__WEBSERVER__WEB_SERVER_TIMEOUT: 300 # since my lap is slow i set this you can have the default value
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres:5432/airflow
-      AIRFLOW__WEBSERVER__AUTHENTICATE: "False"   # disable login for now
-      AIRFLOW__WEBSERVER__WORKERS: 1   # <-- add this line
+      AIRFLOW__WEBSERVER__AUTHENTICATE: "False"   
+      AIRFLOW__WEBSERVER__WORKERS: 1   #same since my lap spec is bad i used one worker rather than 4
 
 
     volumes:
       - ./dags:/opt/airflow/dags
       - ./scripts:/opt/airflow/scripts
     ports:
-      - "8081:8080"  # webserver on 8081 to avoid conflict with pgadmin
+      - "8081:8080"  # webserver on 8081
     command: >
       bash -c "airflow db upgrade && airflow webserver"
     networks:

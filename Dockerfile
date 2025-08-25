@@ -1,7 +1,7 @@
 FROM apache/airflow:2.9.0
 
-# Switch to airflow user to install packages (recommended)
+#extending the predefined image to install required dependencies 
+#we will be building this in yml file
 USER airflow
 
-# Install Python dependencies
 RUN pip install --no-cache-dir requests psycopg2-binary python-dotenv

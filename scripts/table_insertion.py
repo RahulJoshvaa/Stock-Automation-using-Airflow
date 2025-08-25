@@ -16,7 +16,7 @@ def insert_stock():
         )
         cur = conn.cursor()
 
-        # Insert query
+        # Insertion query
         insert_query = """
         INSERT INTO stocks (stock_name, open, high, low, close)
         VALUES (%s, %s, %s, %s, %s);
@@ -38,7 +38,7 @@ def insert_stock():
         # )
 
         cur.execute(insert_query, values)
-        conn.commit()   # save changes
+        conn.commit()   # saving changes
 
         print("Data inserted successfully")
 

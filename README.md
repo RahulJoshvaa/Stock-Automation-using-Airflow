@@ -11,7 +11,7 @@ Everything runs inside Docker — no need to install Airflow or Postgres manuall
 - **Git**  
 
 ⚠️ **Windows Users Note**:  
-If Docker asks you to update WSL, run:
+If Docker asks you to update WSL, run(in PowerShell-preferable):
 ```bash
 wsl --update
 ```
@@ -43,6 +43,7 @@ docker-compose up -d --build
 
 You will see this in terminal.
 
+Next step 4 and 5 in only required for the first time
 ### 4️⃣ Initialize Airflow Database
 ```bash
 docker compose exec airflow_webserver airflow db init
@@ -60,7 +61,7 @@ Run this **after the Airflow Webserver starts**.
 ---
 
 ### 6️⃣ Access Airflow Web UI
-Wait until the server fully starts, then visit:  
+Wait until the server fully starts, then visit(since we used 8081 port for binding):  
 👉 **http://localhost:8081**  
 
 Login with:  
@@ -73,7 +74,8 @@ Login with:
 In the Airflow UI, trigger the event (as shown below):  
 ![DAG Trigger](images/trigger.jpg)
 
-⚠️ Make sure the **Airflow Scheduler** is running, otherwise tasks will remain queued.
+⚠️ Make sure the **Airflow Scheduler** is running(if not compose-down and then compose up again), otherwise tasks will remain queued.
+Once the task succeeded we can verify it
 
 ---
 
@@ -91,7 +93,7 @@ Run SQL query:
 ```sql
 select * from stocks;
 ```
-![DB](images/database.png)
+![DB](images/database.jpg)
 
 ---
 
