@@ -1,47 +1,99 @@
-Stock Data Pipeline with Apache Airflow
+# 📊 Stock Data Pipeline with Apache Airflow & PostgreSQL
 
-This project is a containerized data pipeline built using Apache Airflow and PostgreSQL.
-It automatically fetches stock market data, inserts it into a Postgres database, and manages the workflow using Airflow DAGs.
+This project is a **Dockerized data pipeline** built using **Apache Airflow** and **PostgreSQL**.  
+It automatically fetches stock market data, inserts it into a Postgres database, and manages workflows with Airflow DAGs.  
+Everything runs inside Docker — no need to install Airflow or Postgres manually.
 
-The setup is fully Dockerized so you can get the entire pipeline running with several commands:
-Steps to be followed:
-1 => clone the repository using git clone <repo url>
+---
 
-2 => cd <cloned repo>
+## 🛠️ Prerequisites
+- **Docker** (Install from [Docker Official Site](https://www.docker.com/))  
+- **Git**  
 
-3 => Run 'docker-compose up -d --build'
+⚠️ **Windows Users Note**:  
+If Docker asks you to update WSL, run:
+```bash
+wsl --update
+```
+
+Start the Docker engine.
+
+---
+
+## 🚀 Setup Instructions
+
+> ⚠️ Use **Command Prompt (cmd)**, not PowerShell, as the project was developed in a cmd environment.  
+> Recommended to use **VS Code** for convenience.
+
+### 1️⃣ Clone the Repository
+```bash
+git clone <repo url>
+```
+
+### 2️⃣ Navigate into the Repo
+```bash
+cd <cloned repo>
+```
+
+### 3️⃣ Build & Start Docker Containers
+```bash
+docker-compose up -d --build
+```
 ![Initial Compose](images/ini-compose.png)
 
-You will see this in terminal
+You will see this in terminal.
 
-4 => Then Run 'docker compose exec airflow_webserver airflow db init'
-
-You will see this in terminal 
+### 4️⃣ Initialize Airflow Database
+```bash
+docker compose exec airflow_webserver airflow db init
+```
 ![DB initialization](images/airflow-dbinit.png)
 
+### 5️⃣ Create Airflow Admin User
+```bash
+docker compose exec airflow_webserver airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin
+```
 
-5 => Then Run 'docker compose exec airflow_web airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin' in a single line
+Run this **after the Airflow Webserver starts**.  
+![Login cred](images/login.jpg)
 
-Run this after the airflow Web UI Starts; Check this using 'docker-compose logs -f airflow_webserver'
-You will something like 
-![Server Start](images/server-start.png)
-You can quit from logging by clicking Ctrl + C
+---
 
-               OR
+### 6️⃣ Access Airflow Web UI
+Wait until the server fully starts, then visit:  
+👉 **http://localhost:8081**  
 
-Just verify by visiting the airflow web ui using 'localhost:8081', If it opens and asks the login credentials then you run that command 
+Login with:  
+- **Username:** `admin`  
+- **Password:** `admin`  
 
-Then login using username:admin; password:admin(As we given in that command)
+---
 
-6 => Then trigger the event by clicking like the image given below
-
-
-7 => You can verify the working by visiting the database using cmd
-
-
-
-
-
-
-
+### 7️⃣ Trigger the DAG
+In the Airflow UI, trigger the event (as shown below):  
 ![DAG Trigger](images/trigger.jpg)
+
+⚠️ Make sure the **Airflow Scheduler** is running, otherwise tasks will remain queued.
+
+---
+
+### 8️⃣ Verify Data in PostgreSQL
+To verify the data pipeline:  
+
+Open a terminal in VS Code project folder and run:
+```bash
+docker exec -it postgres psql -U rahul -d stockdatabase
+```
+
+(Username and DB name can be changed in the `docker-compose.yml` file.)  
+
+Run SQL query:
+```sql
+select * from stocks;
+```
+![DB](images/database.png)
+
+---
+
+✅ That’s it! You now have a working **Airflow + Postgres Stock Data Pipeline** inside Docker.  
+No need to install Airflow or Postgres locally — Docker handles everything 🚀
